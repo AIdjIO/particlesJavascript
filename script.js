@@ -9,6 +9,7 @@ gradient.addColorStop(0, 'white');
 gradient.addColorStop(0.5, 'magenta');
 gradient.addColorStop(1, 'blue');
 ctx.fillStyle = gradient;
+ctx.strokeStyle = 'white';
 
 class Particle {
     constructor(effect){
@@ -41,7 +42,7 @@ class Effect {
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.particles = [];
-        this.numberOfParticles = 1000;
+        this.numberOfParticles = 500;
         this.createParticles();
     }
     createParticles(){
@@ -50,10 +51,30 @@ class Effect {
         }
     }
     handleParticles(context){
+        this.connectParticles(context)
         this.particles.forEach(particle=>{
             particle.draw(context);
             particle.update();
         })
+    }
+    connectParticles(context){
+        const maxDistance = 150;
+        for (let a = 0; a < this.particles.length; a++){
+            for (let b = a; b < this.particles.length; b++){
+                const dist = distance(this.particles[a], this.particles[b]);
+
+                if (dist < maxDistance){
+                    context.save();
+                    const opacity = 1 - dist/maxDistance
+                    context.globalAlpha = opacity;
+                    context.beginPath();
+                    context.moveTo(this.particles[a].x, this.particles[a].y)
+                    context.lineTo(this.particles[b].x, this.particles[b].y)
+                    context.stroke();
+                    context.restore();
+                }
+            }
+        }
     }
 }
 
@@ -66,3 +87,10 @@ function animate(){
 }
 
 animate();
+
+function distance(obj1, obj2){
+    const dx = obj1.x - obj2.x;
+    const dy = obj1.y - obj2.y;
+
+    return Math.hypot(dx, dy);
+}

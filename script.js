@@ -4,27 +4,40 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 console.log(ctx);
-const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
 gradient.addColorStop(0, 'white');
 gradient.addColorStop(0.5, 'gold');
-gradient.addColorStop(1, 'orangered');
+// gradient.addColorStop(1, 'orangered');
 ctx.fillStyle = gradient;
-ctx.strokeStyle = 'white';
+ctx.strokeStyle = gradient;
 
 class Particle {
-    constructor(effect){
+    constructor(effect, index){
         this.effect = effect;
+        this.index = index;
         this.radius = Math.floor(Math.random() * 10 + 1);
+        if (this.index % 10 === 0) {
+            this.radius = 30;
+        }
         this.x = this.radius + Math.random() * ( this.effect.width - this.radius * 2);
         this.y = this.radius + Math.random() * ( this.effect.height - this.radius * 2);
         this.vx = Math.random() * 1 - 0.5;
         this.vy = Math.random() * 1 - 0.5;
         this.pushX = 0;
         this.pushY = 0;
-        this.friction = 0.95;
+        this.friction = 0.8;
     }
     draw(context){
-        // context.fillStyle = 'hsl(' + this.x * 0.5 + ', 100%, 50%)';
+        if (this.index % 4 === 0){
+            context.save()
+            context.globalAlpha = 0.4
+            context.beginPath();
+            context.moveTo(this.x, this.y);
+            context.lineTo(this.effect.mouse.x, this.effect.mouse.y)
+            context.stroke()
+            context.restore();
+
+        }
         context.beginPath();
         context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         context.fill();
@@ -80,10 +93,10 @@ class Effect {
         this.createParticles();
 
         this.mouse = {
-            x: 0,
-            y: 0,
+            x: this.width * 0.5,
+            y: this.height * 0.5,
             pressed: false,
-            radius: 400,
+            radius: 120,
         }
         window.addEventListener('resize', e => {
             this.resize(e.target.window.innerWidth, 
@@ -108,7 +121,7 @@ class Effect {
     }
     createParticles(){
         for (let i = 0; i < this.numberOfParticles; i++){
-            this.particles.push(new Particle(this))
+            this.particles.push(new Particle(this, i))
         }
     }
     handleParticles(context){

@@ -3,45 +3,41 @@ const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-console.log(ctx);
-const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-gradient.addColorStop(0, 'white');
-gradient.addColorStop(0.5, 'gold');
-// gradient.addColorStop(1, 'orangered');
+
+let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+gradient.addColorStop(0, 'pink');
+gradient.addColorStop(0.5, 'red');
+gradient.addColorStop(1, 'magenta');
 ctx.fillStyle = gradient;
-ctx.strokeStyle = gradient;
 
 class Particle {
     constructor(effect, index){
         this.effect = effect;
         this.index = index;
-        this.radius = Math.floor(Math.random() * 10 + 1);
+        this.radius = Math.floor(Math.random() * 8 + 8);
+        this.minRadius = this.radius;
+        this.maxRadius =  this.radius * 5;
         if (this.index % 10 === 0) {
             this.radius = 30;
         }
         this.x = this.radius + Math.random() * ( this.effect.width - this.radius * 2);
         this.y = this.radius + Math.random() * ( this.effect.height - this.radius * 2);
-        this.vx = Math.random() * 1 - 0.5;
-        this.vy = Math.random() * 1 - 0.5;
-        this.pushX = 0;
-        this.pushY = 0;
+        this.vx = Math.random() * 0.2 - 0.1;
+        this.vy = Math.random() * 0.2 - 0.1;
+       
         this.friction = 0.8;
     }
     draw(context){
-        if (this.index % 4 === 0){
-            context.save()
-            context.globalAlpha = 0.4
-            context.beginPath();
-            context.moveTo(this.x, this.y);
-            context.lineTo(this.effect.mouse.x, this.effect.mouse.y)
-            context.stroke()
-            context.restore();
-
-        }
+        context.fillStyle = gradient;
         context.beginPath();
         context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         context.fill();
         context.stroke();
+
+        context.fillStyle = 'white';
+        context.beginPath();
+        context.arc(this.x - this.radius * 0.2, this.y - this.radius * 0.3, this.radius * 0.6, 0, Math.PI * 2);
+        context.fill();
     }
     update(){
         if (this.effect.mouse.pressed) {
@@ -49,15 +45,15 @@ class Particle {
             const dy = this.y - this.effect.mouse.y;
             const dist = Math.hypot(dx, dy);
             const force = this.effect.mouse.radius / dist;
-            if (dist < this.effect.mouse.radius){
-                const angle = Math.atan2(dy, dx);
-                this.pushX += Math.cos(angle) * force;
-                this.pushY += Math.sin(angle) * force;
+            if (dist < this.effect.mouse.radius && this.radius < this.maxRadius){
+                this.radius += 2;
             }
         }
+
+        if (this.radius > this.minRadius) this.radius -= 0.1;
         
-        this.x += (this.pushX *= this.friction) + this.vx;
-        this.y += (this.pushY *= this.friction) + this.vy
+        this.x += this.vx;
+        this.y += this.vy
 
         if (this.x < this.radius){
             this.x = this.radius;
@@ -96,7 +92,7 @@ class Effect {
             x: this.width * 0.5,
             y: this.height * 0.5,
             pressed: false,
-            radius: 120,
+            radius: 60,
         }
         window.addEventListener('resize', e => {
             this.resize(e.target.window.innerWidth, 
@@ -125,7 +121,7 @@ class Effect {
         }
     }
     handleParticles(context){
-        this.connectParticles(context)
+        // this.connectParticles(context)
         this.particles.forEach(particle=>{
             particle.draw(context);
             particle.update();
@@ -156,12 +152,11 @@ class Effect {
         this.width = width;
         this.height = height;
         
-        const gradient = this.context.createLinearGradient(0, 0, width, height);
-        gradient.addColorStop(0, 'white');
-        gradient.addColorStop(0.5, 'gold');
-        gradient.addColorStop(1, 'orangered');
+        gradient = this.context.createLinearGradient(0, 0, width, height);
+        gradient.addColorStop(0, 'pink');
+        gradient.addColorStop(0.5, 'red');
+        gradient.addColorStop(1, 'magenta');
         this.context.fillStyle = gradient;
-        this.context.strokeStyle = 'white';
 
         this.particles.forEach(particle => particle.reset());
     }

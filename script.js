@@ -6,19 +6,22 @@ canvas.height = window.innerHeight;
 console.log(ctx);
 const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
 gradient.addColorStop(0, 'white');
-gradient.addColorStop(0.5, 'magenta');
-gradient.addColorStop(1, 'blue');
+gradient.addColorStop(0.5, 'gold');
+gradient.addColorStop(1, 'orangered');
 ctx.fillStyle = gradient;
 ctx.strokeStyle = 'white';
 
 class Particle {
     constructor(effect){
         this.effect = effect;
-        this.radius = Math.random() * 10 + 5 ;
+        this.radius = Math.floor(Math.random() * 10 + 1);
         this.x = this.radius + Math.random() * ( this.effect.width - this.radius * 2);
         this.y = this.radius + Math.random() * ( this.effect.height - this.radius * 2);
         this.vx = Math.random() * 1 - 0.5;
         this.vy = Math.random() * 1 - 0.5;
+        this.pushX = 0;
+        this.pushY = 0;
+        this.friction = 0.95;
     }
     draw(context){
         // context.fillStyle = 'hsl(' + this.x * 0.5 + ', 100%, 50%)';
@@ -28,22 +31,80 @@ class Particle {
         context.stroke();
     }
     update(){
-        this.x += this.vx;
-        if( this.x > this.effect.width - this.radius || this.x < this.radius ) this.vx *= -1;
+        if (this.effect.mouse.pressed) {
+            const dx = this.x - this.effect.mouse.x;
+            const dy = this.y - this.effect.mouse.y;
+            const dist = Math.hypot(dx, dy);
+            const force = this.effect.mouse.radius / dist;
+            if (dist < this.effect.mouse.radius){
+                const angle = Math.atan2(dy, dx);
+                this.pushX += Math.cos(angle) * force;
+                this.pushY += Math.sin(angle) * force;
+            }
+        }
         
-        this.y+= this.vy;
-        if( this.y > this.effect.height - this.radius || this.y < this.radius ) this.vy *= -1;        
+        this.x += (this.pushX *= this.friction) + this.vx;
+        this.y += (this.pushY *= this.friction) + this.vy
+
+        if (this.x < this.radius){
+            this.x = this.radius;
+            this.vx *= -1;
+        } else if (this.x > this.effect.width - this.radius) {
+            this.x = this.effect.width - this.radius;;
+            this.vx *= -1;
+        }
+        if (this.y < this.radius){
+            this.y = this.radius;
+            this.vy *= -1;
+        } else if (this.y > this.effect.height - this.radius) {
+            this.y = this.effect.height - this.radius;;
+            this.vy *= -1;
+        }
+
+
+    }
+    reset(){
+        this.x = this.radius + Math.random() * ( this.effect.width - this.radius * 2);
+        this.y = this.radius + Math.random() * ( this.effect.height - this.radius * 2);
     }
 }
 
 class Effect {
-    constructor(canvas){
+    constructor(canvas, context){
         this.canvas = canvas;
+        this.context = context;
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.particles = [];
-        this.numberOfParticles = 500;
+        this.numberOfParticles = 400;
         this.createParticles();
+
+        this.mouse = {
+            x: 0,
+            y: 0,
+            pressed: false,
+            radius: 400,
+        }
+        window.addEventListener('resize', e => {
+            this.resize(e.target.window.innerWidth, 
+                e.target.window.innerHeight
+            )
+        })
+
+        window.addEventListener('mousemove', e => {
+            if (this.mouse.pressed){
+                this.mouse.x = e.x;
+                this.mouse.y = e.y
+            }
+        })
+        window.addEventListener('mousedown', e => {
+            this.mouse.pressed = true;
+            this.mouse.x = e.x;
+            this.mouse.y = e.y;
+        })
+        window.addEventListener('mouseup', e => {
+            this.mouse.pressed = false
+        })
     }
     createParticles(){
         for (let i = 0; i < this.numberOfParticles; i++){
@@ -76,9 +137,24 @@ class Effect {
             }
         }
     }
+    resize(width, height){
+        this.canvas.width = width;
+        this.canvas.height = height;
+        this.width = width;
+        this.height = height;
+        
+        const gradient = this.context.createLinearGradient(0, 0, width, height);
+        gradient.addColorStop(0, 'white');
+        gradient.addColorStop(0.5, 'gold');
+        gradient.addColorStop(1, 'orangered');
+        this.context.fillStyle = gradient;
+        this.context.strokeStyle = 'white';
+
+        this.particles.forEach(particle => particle.reset());
+    }
 }
 
-const effect = new Effect(canvas);
+const effect = new Effect(canvas, ctx);
 
 function animate(){
     ctx.clearRect(0, 0, canvas.width, canvas.height)

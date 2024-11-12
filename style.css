@@ -3,14 +3,22 @@
     padding: 0;
     box-sizing: border-box;
 }
-#canvas1 {
-    position: absolute;
-    top: 0;
-    left:0;
-    background: black;
 
+body {
+    background: black;
 }
+
 
 #starts_sprite {
     display: none;
+}
+
+canvas {
+    position: absolute;
+    top : 0;
+    left: 0;
+}
+#canvas1 {
+    background: black;
+    filter: blur(7px) contrast(20);
 }

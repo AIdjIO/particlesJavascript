@@ -1,68 +1,66 @@
+// setup
+const canvas = document.getElementById('canvas1');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+ctx.fillStyle = 'white';
+ctx.strokeStyle = 'white';
 
+const canvas2 = document.getElementById('canvas2');
+const ctx2 = canvas2.getContext('2d');
+canvas2.width = window.innerWidth;
+canvas2.height = window.innerHeight;
+
+// ctx2.strokeStyle = 'white';
+ctx2.lineWidth = 2;
 
 class Particle {
-    constructor(effect, index){
+    constructor(effect){
         this.effect = effect;
-        this.index = index;
-        this.radius = Math.floor(Math.random() * 8 + 8);
-        this.minRadius = this.radius;
-        this.maxRadius =  this.radius * 5;
-        if (this.index % 10 === 0) {
-            this.radius = 30;
-        }
-        this.x = this.radius + Math.random() * ( this.effect.width - this.radius * 2);
-        this.y = this.radius + Math.random() * ( this.effect.height - this.radius * 2);
-        this.vx = Math.random() * 0.2 - 0.1;
-        this.vy = Math.random() * 0.2 - 0.1;
-       
-        this.friction = 0.8;
-        this.image = document.getElementById("stars_sprite");
-        this.spriteWidth = 50;
-        this.spriteHeight = 50;
-        this.sizeModifier = Math.random() + 0.9 ;
-        this.width = this.spriteWidth * this.sizeModifier;
-        this.height = this.spriteHeight * this.sizeModifier;
-        this.halfWidth = this.width * 0.5;
-        this.halfHeight = this.height * 0.5;
-        this.frameX = Math.floor(Math.random() * 3);
-        this.frameY = Math.floor(Math.random() * 3);
-
+        this.radius = Math.floor(Math.random() * 30 + 10);
+        this.buffer = this.radius *4;
+        this.x = this.radius + Math.random() * (this.effect.width - this.radius * 2);
+        this.y = this.radius + Math.random() * (this.effect.height - this.radius * 2);
+        this.vx = Math.random() * 1 - 0.5;
+        this.vy = Math.random() * 1 - 0.5;
+        this.pushX = 0;
+        this.pushY = 0;
+        this.friction = 0.95;
     }
-    draw(context){    
-        context.drawImage(this.image, this.frameX * this.spriteWidth, this.frameY * this.spriteHeight,
-                            this.spriteWidth, this.spriteHeight, 
-                            this.x - this.halfWidth, this.y - this.halfHeight,
-                            this.width, this.height);
-
+    draw(context){
+        context.beginPath();
+        context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        context.fill();
+        //context.stroke();
     }
     update(){
         if (this.effect.mouse.pressed){
             const dx = this.x - this.effect.mouse.x;
             const dy = this.y - this.effect.mouse.y;
             const distance = Math.hypot(dx, dy);
-            const force = (this.effect.mouse.radius / distance);
+            const force = 1/(this.effect.mouse.radius / distance);
             if (distance < this.effect.mouse.radius){
                 const angle = Math.atan2(dy, dx);
-                this.pushX += Math.cos(angle) * force;
-                this.pushY += Math.sin(angle) * force;
+                this.pushX -= Math.cos(angle) * force;
+                this.pushY -= Math.sin(angle) * force;
             }
         }
 
         this.x += (this.pushX *= this.friction) + this.vx;
         this.y += (this.pushY *= this.friction) + this.vy;
 
-        if (this.x < this.radius){
-            this.x = this.radius;
+        if (this.x < this.buffer){
+            this.x = this.buffer;
             this.vx *= -1;
-        } else if (this.x > this.effect.width - this.radius){
-            this.x = this.effect.width - this.radius;
+        } else if (this.x > this.effect.width - this.buffer){
+            this.x = this.effect.width - this.buffer;
             this.vx *= -1;
         }
-        if (this.y < this.radius){
-            this.y = this.radius;
+        if (this.y < this.buffer){
+            this.y = this.buffer;
             this.vy *= -1;
-        } else if (this.y > this.effect.height - this.radius){
-            this.y = this.effect.height - this.radius;
+        } else if (this.y > this.effect.height - this.buffer){
+            this.y = this.effect.height - this.buffer;
             this.vy *= -1;
         }
     }
@@ -112,8 +110,8 @@ class Effect {
             this.particles.push(new Particle(this));
         }
     }
-    handleParticles(context){
-        // this.connectParticles(context);
+    handleParticles(context, context2){
+        this.connectParticles(context2);
         this.particles.forEach(particle => {
             particle.draw(context);
             particle.update();
@@ -127,14 +125,14 @@ class Effect {
                 const dy = this.particles[a].y - this.particles[b].y;
                 const distance = Math.hypot(dx, dy);
                 if (distance < maxDistance){
-                    // context.save();
+                    context.save();
                     const opacity = 1 - (distance/maxDistance);
                     context.globalAlpha = opacity;
                     context.beginPath();
                     context.moveTo(this.particles[a].x, this.particles[a].y);
                     context.lineTo(this.particles[b].x, this.particles[b].y);
                     context.stroke();
-                    // context.restore();
+                    context.restore();
                 }
             }
         }
@@ -144,29 +142,19 @@ class Effect {
         this.canvas.height = height;
         this.width = width;
         this.height = height;
+        this.context.fillStyle = 'white';
         this.context.strokeStyle = 'white';
         this.particles.forEach(particle => {
             particle.reset();
         });
     }
 }
+const effect = new Effect(canvas, ctx);
 
-
-window.addEventListener('load', ()=>{
-    // setup
-    const canvas = document.getElementById('canvas1');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // ctx.strokeStyle = 'white';
-
-    const effect = new Effect(canvas, ctx);
-
-    function animate(){
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        effect.handleParticles(ctx);
-        requestAnimationFrame(animate);
-    }
-    animate();
-})
+function animate(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx2.clearRect(0, 0, canvas2.width, canvas2.height);    
+    effect.handleParticles(ctx, ctx2);
+    requestAnimationFrame(animate);
+}
+animate();

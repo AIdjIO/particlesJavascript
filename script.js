@@ -26,6 +26,7 @@ class Particle {
         this.height = this.radius * 2;
         this.color = 'white';
     }
+
     draw(context){
         context.beginPath();
         context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
@@ -35,6 +36,7 @@ class Particle {
                 this.width, this.height)
         }
     }
+    
     update(){
         this.vy += this.gravity;
         this.x += this.vx;
@@ -51,20 +53,20 @@ class Particle {
             this.x - this.radius < this.effect.element.x + this.effect.element.width &&
             this.x - this.radius + this.width > this.effect.element.x &&
             this.y - this.radius < this.effect.element.y + 5 &&
-            this.y -this.radius + this.height > this.effect.element.y
+            this.y - this.radius + this.height > this.effect.element.y
           ) {
             // Collision detected!
-            this.vy *= -1;
-          } else {
-            // No collision
-
+            this.vy *= -0.5;
+            this.y = this.effect.element.y - this.radius;
+            this.vx *= 1;
           }
-
     }
+
     reset(){
         this.x = this.radius + Math.random() * (this.effect.width - this.radius * 2);
         this.y = -this.radius - this.effect.maxDistance - Math.random() * this.effect.height * 0.5;
         this.vy = 0;
+        this.vx = Math.random() * 1 - 0.5;
     }
 }
 
@@ -151,6 +153,7 @@ class Effect {
         this.canvas.height = height;
         this.width = width;
         this.height = height;
+        this.element = document.getElementById("caption").getBoundingClientRect();
         const gradient = this.context.createLinearGradient(0,0, width, height);
         gradient.addColorStop(0, 'darkblue');
         gradient.addColorStop(0.5, 'white');

@@ -15,15 +15,7 @@ body {
     background: black;
 }
 
-h1 {
-    color: white;
-    font-size: 80px;
-    font-family: Impact, cursive;
-    position: absolute;
-    top: 50%;
-    left:50%;
-    transform: translate(-50%, -50%);
-    border-top: 5px solid white;
-}
 
-    
+img {
+    display:none;
+}

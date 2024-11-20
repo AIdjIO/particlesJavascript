@@ -68,6 +68,8 @@ class Whale {
         this.spriteHeight = 285;
         this.frameX = 0;
         this.maxFrame = 38;
+        this.frameTimer = 0;
+        this.frameInterval = 1000/50;
     }
     draw(context){
         context.save();
@@ -80,12 +82,18 @@ class Whale {
                 this.spriteWidth, this.spriteHeight)
         context.restore();
     }
-    update(){
+    update(deltaTime){
         this.angle += this.va;
         this.y = this.effect.height * 0.5 + Math.sin(this.angle) * 100;
         if (this.angle > Math.PI * 2) this.angle = 0
-        //sprite animation
-        this.frameX < this.maxFrame ? this.frameX++ : this.frameX = 0;
+
+        if (this.frameTimer > this.frameInterval){
+            //sprite animation
+            this.frameX < this.maxFrame ? this.frameX++ : this.frameX = 0;
+            this.frameTimer = 0;
+        } else {
+            this.frameTimer += deltaTime;
+        }
     }
 
 }
@@ -131,14 +139,14 @@ class Effect {
             this.particles.push(new Particle(this));
         }
     }
-    handleParticles(context){
+    handleParticles(context, deltaTime){
         this.connectParticles(context);
         this.particles.forEach(particle => {
             particle.draw(context);
             particle.update();
         });
         this.whale.draw(context);
-        this.whale.update();
+        this.whale.update(deltaTime);
     }
     connectParticles(context){
         for (let a = 0; a < this.particles.length; a++){
@@ -175,9 +183,13 @@ class Effect {
 }
 const effect = new Effect(canvas, ctx);
 
-function animate(){
+let lastTime = 0;
+function animate(timeStamp){
+    const deltaTime = timeStamp -lastTime;
+
+    lastTime = timeStamp;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    effect.handleParticles(ctx);
+    effect.handleParticles(ctx, deltaTime);
     requestAnimationFrame(animate);
 }
-animate();
+animate(0);

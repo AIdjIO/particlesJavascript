@@ -60,13 +60,14 @@ class Whale {
         this.effect = effect;
         this.x = this.effect.width * 0.4
         this.y = this.effect.height * 0.5;
-        this.image = document.getElementById("whale2");
+        this.image = document.getElementById("whale3");
         this.angle = 0;
         this.va = 0.01;
         this.curve = this.effect.height * 0.2
         this.spriteWidth = 420;
         this.spriteHeight = 285;
         this.frameX = 0;
+        this.frameY = Math.floor(Math.random() * 4);
         this.maxFrame = 38;
         this.frameTimer = 0;
         this.frameInterval = 1000/50;
@@ -76,7 +77,7 @@ class Whale {
         context.translate(this.x, this.y);
         context.rotate(Math.cos(this.angle));
         // context.translate(-this.x, -this.y);
-        context.drawImage(this.image,this.frameX * this.spriteWidth,0,
+        context.drawImage(this.image,this.frameX * this.spriteWidth, this.frameY * this.spriteHeight,
                 this.spriteWidth, this.spriteHeight,
                 0 - this.spriteWidth * 0.5, 0 - this.spriteHeight * 0.5,
                 this.spriteWidth, this.spriteHeight)
@@ -173,8 +174,8 @@ class Effect {
         this.width = width;
         this.height = height;
         this.whale.x = this.width * 0.4;
-        this.whale.x = this.height * 0.5;
-        this.whale.cure = this.height * 0.2;
+        this.whale.y = this.height * 0.5;
+        this.whale.curve = this.height * 0.2;
         this.context.strokeStyle = 'white';
         this.particles.forEach(particle => {
             particle.reset();

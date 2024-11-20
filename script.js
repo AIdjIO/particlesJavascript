@@ -1,3 +1,4 @@
+window.addEventListener('load', function(){
 // setup
 const canvas = document.getElementById('canvas1');
 const ctx = canvas.getContext('2d');
@@ -12,9 +13,9 @@ class Particle {
         this.effect = effect;
         this.radius = Math.floor(Math.random() * 10 + 1);
         this.imageSize = this.radius * 8;
-        this.x = this.imageSize + Math.random() * (this.effect.width + this.effect.maxDistance*4);
-        this.y = this.imageSize + Math.random() * (this.effect.height - this.imageSize * 2);
-        this.vx = -1
+        this.x = this.imageSize + Math.random() * (this.effect.width + this.effect.maxDistance * 2);
+        this.y = Math.random() * (this.effect.height);
+        this.vx = -1.5
         this.pushX = 0;
         this.pushY = 0;
         this.friction = 0.95;
@@ -29,16 +30,14 @@ class Particle {
         //context.stroke();
     }
     update(){
-        if (this.effect.mouse.pressed){
-            const dx = this.x - this.effect.mouse.x;
-            const dy = this.y - this.effect.mouse.y;
-            const distance = Math.hypot(dx, dy);
-            const force = (this.effect.mouse.radius / distance);
-            if (distance < this.effect.mouse.radius){
-                const angle = Math.atan2(dy, dx);
-                this.pushX += Math.cos(angle) * force;
-                this.pushY += Math.sin(angle) * force;
-            }
+        const dx = this.x - this.effect.whale.x;
+        const dy = this.y - this.effect.whale.y;
+        const distance = Math.hypot(dx, dy);
+        const force = (this.effect.whale.radius / distance);
+        if (distance < this.effect.whale.radius){
+            const angle = Math.atan2(dy, dx);
+            this.pushX += Math.cos(angle) * force;
+            this.pushY += Math.sin(angle) * force;
         }
 
         this.x += (this.pushX *= this.friction) + this.vx;
@@ -50,8 +49,8 @@ class Particle {
         }
     }
     reset(){
-        this.x = this.imageSize + Math.random() * (this.effect.width + this.effect.maxDistance*4);
-        this.y = this.imageSize + Math.random() * (this.effect.height - this.effect.maxDistance *2);
+        this.x = this.imageSize + Math.random() * (this.effect.width + this.effect.maxDistance * 2);
+        this.y = Math.random() * (this.effect.height);
     }
 }
 
@@ -70,12 +69,13 @@ class Whale {
         this.frameY = Math.floor(Math.random() * 4);
         this.maxFrame = 38;
         this.frameTimer = 0;
-        this.frameInterval = 1000/50;
+        this.frameInterval = 1000/60;
+        this.radius = 200;
     }
     draw(context){
         context.save();
         context.translate(this.x, this.y);
-        context.rotate(Math.cos(this.angle));
+        context.rotate(Math.cos(this.angle) * 0.4);
         // context.translate(-this.x, -this.y);
         context.drawImage(this.image,this.frameX * this.spriteWidth, this.frameY * this.spriteHeight,
                 this.spriteWidth, this.spriteHeight,
@@ -105,34 +105,13 @@ class Effect {
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.particles = [];
-        this.numberOfParticles = 300;
-        this.maxDistance = 80;
+        this.numberOfParticles = 500;
+        this.maxDistance = 150;
         this.createParticles();
         this.whale = new Whale(this);
 
-        this.mouse = {
-            x: 0,
-            y: 0,
-            pressed: false,
-            radius: 200
-        }
-
         window.addEventListener('resize', e => {
             this.resize(e.target.window.innerWidth, e.target.window.innerHeight);
-        });
-        window.addEventListener('mousemove', e => {
-            if (this.mouse.pressed){
-                this.mouse.x = e.x;
-                this.mouse.y = e.y;
-            }
-        });
-        window.addEventListener('mousedown', e => {
-            this.mouse.pressed = true;
-            this.mouse.x = e.x;
-            this.mouse.y = e.y;
-        });
-        window.addEventListener('mouseup', e => {
-            this.mouse.pressed = false;
         });
     }
     createParticles(){
@@ -194,3 +173,4 @@ function animate(timeStamp){
     requestAnimationFrame(animate);
 }
 animate(0);
+})

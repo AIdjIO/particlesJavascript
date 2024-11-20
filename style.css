@@ -8,13 +8,16 @@ body {
     background: black;
 }
 
-#canvas1 {
+canvas {
     position: absolute;
-    top : 0;
+    top: 0;
     left: 0;
-    background: linear-gradient(#231646, #4d0941);
 }
 
+#canvas1 {
+    background: linear-gradient(yellow 25%, red 25%, red 50%, blue 50%, blue 75%, black 75%);
+    filter: blur(15px) contrast(30);
+}
 
 img {
     display:none;
